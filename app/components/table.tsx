@@ -22,11 +22,8 @@ import type { ReactElement } from "react";
 import useTableSearchParams from "~/hooks/use-table-search-params";
 
 interface TableProps<T> {
-  className?: string;
   columns: ColumnDef<T, any>[];
   data: T[];
-  pageSize?: number;
-  scrollViewClassName?: string;
 }
 
 export default function Table<T>({
@@ -66,17 +63,12 @@ export default function Table<T>({
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
-                  className={
-                    header.column.getCanSort()
-                      ? "cursor-pointer select-none"
-                      : ""
-                  }
                   colSpan={header.colSpan}
                   key={header.id}
                   onClick={header.column.getToggleSortingHandler()}
                 >
-                  <div className="flex flex-row items-center">
-                    <span className="h-full pr-2">
+                  <div>
+                    <span>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -106,37 +98,26 @@ export default function Table<T>({
           ))}
         </tbody>
       </table>
-      <div className="h-2" />
-      <div className="flex items-center">
+      <div>
         <button
-          className="mr-2 rounded border p-2 text-light-primary-main dark:text-dark-primary-main"
           onClick={(): void => {
             table.previousPage();
           }}
           disabled={!table.getCanPreviousPage()}
         >
-          <IconCaretLeftFilled
-            className="text-light-primary-main dark:text-dark-primary-main"
-            size={14}
-          />
+          <IconCaretLeftFilled size={14} />
         </button>
         <button
-          className="mr-2 rounded border p-2 text-light-primary-main dark:text-dark-primary-main"
           onClick={(): void => {
             table.nextPage();
           }}
           disabled={!table.getCanNextPage()}
         >
-          <IconCaretRightFilled
-            className="text-light-primary-main dark:text-dark-primary-main"
-            size={14}
-          />
+          <IconCaretRightFilled size={14} />
         </button>
-        <span className="flex items-center gap-1">
-          <span className="text-light-primary-main dark:text-dark-primary-main">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </span>
+        <span>
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {table.getPageCount()}
         </span>
       </div>
     </>
