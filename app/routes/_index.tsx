@@ -39,31 +39,33 @@ export default function Index() {
     ];
   }, []);
 
-  const instances: User[] = [
-    {
-      id: 1,
-      name: "John",
-      surname: "Doe",
-      age: 40,
-    },
-    {
-      id: 2,
-      name: "Alex",
-      surname: "Doe",
-      age: 23,
-    },
-    {
-      id: 3,
-      name: "Derek",
-      surname: "Doe",
-      age: 33,
-    },
-  ];
+  const data: User[] = useMemo(() => {
+    return [
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        age: 40,
+      },
+      {
+        id: 2,
+        name: "Alex",
+        surname: "Doe",
+        age: 23,
+      },
+      {
+        id: 3,
+        name: "Derek",
+        surname: "Doe",
+        age: 33,
+      },
+    ];
+  }, []);
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <h1>remix-tanstack-table-test</h1>
-      <Table columns={columns} data={instances} />
+      <Table columns={columns} data={data} />
     </div>
   );
 }
