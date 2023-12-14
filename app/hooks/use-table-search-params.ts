@@ -1,7 +1,6 @@
 import { useSearchParams } from "@remix-run/react";
 import type {
   ColumnSort,
-  OnChangeFn,
   PaginationState,
   SortingState,
 } from "@tanstack/react-table";
@@ -45,7 +44,6 @@ const useTableSearchParams = (
     if (!state[0]) {
       searchParams.set(sortDescendingParamName, String(defaultSortState.desc));
       searchParams.set(sortIdParamName, defaultSortState.id);
-      return;
     } else {
       searchParams.set(sortDescendingParamName, String(state[0].desc));
       searchParams.set(sortIdParamName, state[0].id);
