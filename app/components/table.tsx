@@ -6,123 +6,134 @@ import {
 } from "@tabler/icons-react";
 import {
   flexRender,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import type {
-  Cell,
-  ColumnDef,
-  Row,
-  Table as TanstackTable,
-} from "@tanstack/table-core";
+import type { ColumnDef } from "@tanstack/table-core";
 import { getCoreRowModel } from "@tanstack/table-core";
-import { useEffect, type ReactElement } from "react";
+import { Person } from "~/data";
 
-import useTableSearchParams from "~/hooks/use-table-search-params";
+import { useRouteLoaderData, useSearchParams } from "@remix-run/react";
+import { loader as parentLoader } from "~/root";
 
-interface TableProps<T> {
-  columns: ColumnDef<T, any>[];
-  data: T[];
+interface TableProps {
+  columns: ColumnDef<Person>[];
 }
 
-export default function Table<T>({
-  columns,
-  data,
-}: TableProps<T>): ReactElement {
-  const [pagination, sorting, setPagination, setSorting] = useTableSearchParams(
-    {
-      pageIndex: 0,
-      pageSize: 10,
-    },
-    {
-      desc: false,
-      id: "id",
-    }
-  );
+const updateSearchParams = (param: string, value: string) => {
+  const currentSearchParams = new URLSearchParams(window.location.search);
+  currentSearchParams.set(param, value);
+  return currentSearchParams;
+};
 
-  const table: TanstackTable<T> = useReactTable({
-    columns: columns,
-    data,
+export default function Table({ columns }: TableProps) {
+  const [, setSearchParams] = useSearchParams();
+  const data = useRouteLoaderData<typeof parentLoader>("root");
+
+  const pageCount = data ? data.data.size / parseInt(data.pageSize) : 0;
+
+  const table = useReactTable({
+    columns,
+    data: data?.data.data ?? [],
     getCoreRowModel: getCoreRowModel(),
+    // as we're doing CSR sorting
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination,
-      sorting,
+    // as we're doing SSR pagination
+    manualPagination: true,
+    state: {
+      pagination: {
+        pageIndex: parseInt(data?.pageIndex as string) ?? 0,
+        pageSize: parseInt(data?.pageSize as string) ?? 10,
+      },
     },
+    pageCount,
   });
 
-  useEffect(() => {
-    setPagination(table.getState().pagination);
-    setSorting(table.getState().sorting);
-  }, [table.getState().pagination, table.getState().sorting]);
-
   return (
-    <>
-      <table>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  colSpan={header.colSpan}
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  <div>
-                    <span>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </span>
-                    {{
-                      asc: <IconSquareChevronUpFilled size={14} />,
-                      desc: <IconSquareChevronDownFilled size={14} />,
-                    }[header.column.getIsSorted() as string] ?? null}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row: Row<T>) => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell: Cell<T, unknown>) => (
-                <td key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div>
-        <button
-          onClick={(): void => {
-            table.previousPage();
-          }}
-          disabled={!table.getCanPreviousPage()}
-        >
-          <IconCaretLeftFilled size={14} />
-        </button>
-        <button
-          onClick={(): void => {
-            table.nextPage();
-          }}
-          disabled={!table.getCanNextPage()}
-        >
-          <IconCaretRightFilled size={14} />
-        </button>
-        <span>
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
-        </span>
-      </div>
-    </>
+    data?.data && (
+      <>
+        <table>
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    colSpan={header.colSpan}
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    <div>
+                      <span>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </span>
+                      {{
+                        asc: <IconSquareChevronUpFilled size={14} />,
+                        desc: <IconSquareChevronDownFilled size={14} />,
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div>
+          <button
+            onClick={(): void => {
+              table.previousPage();
+              const pageSize = table.getState().pagination.pageSize;
+              const nextPageIndex = (
+                table.getState().pagination.pageIndex - pageSize
+              ).toString();
+              const newSearchParams = updateSearchParams(
+                "page_index",
+                nextPageIndex
+              );
+              setSearchParams(newSearchParams);
+            }}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <IconCaretLeftFilled size={14} />
+          </button>
+          <button
+            onClick={(): void => {
+              table.nextPage();
+              const pageSize = table.getState().pagination.pageSize;
+              const nextPageIndex = (
+                table.getState().pagination.pageIndex + pageSize
+              ).toString();
+              const newSearchParams = updateSearchParams(
+                "page_index",
+                nextPageIndex
+              );
+              setSearchParams(newSearchParams);
+            }}
+            disabled={!table.getCanNextPage()}
+          >
+            <IconCaretRightFilled size={14} />
+          </button>
+          <span>
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </span>
+        </div>
+      </>
+    )
   );
 }
