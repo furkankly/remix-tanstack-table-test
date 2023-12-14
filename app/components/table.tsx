@@ -17,7 +17,7 @@ import type {
   Table as TanstackTable,
 } from "@tanstack/table-core";
 import { getCoreRowModel } from "@tanstack/table-core";
-import type { ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
 
 import useTableSearchParams from "~/hooks/use-table-search-params";
 
@@ -47,13 +47,16 @@ export default function Table<T>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPagination,
-    onSortingChange: setSorting,
-    state: {
+    initialState: {
       pagination,
       sorting,
     },
   });
+
+  useEffect(() => {
+    setPagination(table.getState().pagination);
+    setSorting(table.getState().sorting);
+  }, [table.getState().pagination, table.getState().sorting]);
 
   return (
     <>
