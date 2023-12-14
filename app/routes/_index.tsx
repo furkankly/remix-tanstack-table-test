@@ -5,6 +5,7 @@ import {
   ColumnHelper,
   createColumnHelper,
 } from "@tanstack/react-table";
+import { useMemo } from "react";
 import Table from "~/components/table";
 import { User } from "~/types";
 
@@ -15,27 +16,29 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-const columnHelper: ColumnHelper<User> = createColumnHelper<User>();
-const columns: ColumnDef<User, any>[] = [
-  columnHelper.accessor("id", {
-    cell: (props: CellContext<User, number>) => props.getValue(),
-    header: (): string => "ID",
-  }),
-  columnHelper.accessor("name", {
-    cell: (props: CellContext<User, string>) => props.getValue(),
-    header: (): string => "Name",
-  }),
-  columnHelper.accessor("surname", {
-    cell: (props: CellContext<User, string>) => props.getValue(),
-    header: (): string => "Surname",
-  }),
-  columnHelper.accessor("age", {
-    cell: (props: CellContext<User, number>) => props.getValue(),
-    header: (): string => "Age",
-  }),
-];
-
 export default function Index() {
+  const columns: ColumnDef<User, any>[] = useMemo(() => {
+    const columnHelper: ColumnHelper<User> = createColumnHelper<User>();
+    return [
+      columnHelper.accessor("id", {
+        cell: (props: CellContext<User, number>) => props.getValue(),
+        header: (): string => "ID",
+      }),
+      columnHelper.accessor("name", {
+        cell: (props: CellContext<User, string>) => props.getValue(),
+        header: (): string => "Name",
+      }),
+      columnHelper.accessor("surname", {
+        cell: (props: CellContext<User, string>) => props.getValue(),
+        header: (): string => "Surname",
+      }),
+      columnHelper.accessor("age", {
+        cell: (props: CellContext<User, number>) => props.getValue(),
+        header: (): string => "Age",
+      }),
+    ];
+  }, []);
+
   const instances: User[] = [
     {
       id: 1,
